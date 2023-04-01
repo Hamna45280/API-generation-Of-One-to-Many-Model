@@ -1,0 +1,87 @@
+sCHEMA IN MONGODB
+
+
+{
+  _id: ObjectId,
+  name: String,
+  location: String,
+  created_at: Date,
+  updated_at: Date
+}
+
+// Employees collection
+{
+  _id: ObjectId,
+  name: String,
+  email: String,
+  department_id: ObjectId,
+  created_at: Date,
+  updated_at: Date
+}
+
+code for the ExpressJS API:
+
+const express = require('express');
+const mongoose = require('mongoose');
+
+const app = express();
+app.use(express.json());
+
+mongoose.connect('mongodb://localhost/company', { useNewUrlParser: true });
+
+const Department = mongoose.model('Department', {
+  name: String,
+  location: String,
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+
+const Employee = mongoose.model('Employee', {
+  name: String,
+  email: String,
+  department_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+
+// GET /departments
+app.get('/departments', async (req, res) => {
+  const departments = await Department.find();
+  res.json(departments);
+});
+
+// POST /departments
+app.post('/departments', async (req, res) => {
+  const department = new Department(req.body);
+  await department.save();
+  res.status(201).json(department);
+});
+
+// GET /departments/:id
+app.get('/departments/:id', async (req, res) => {
+  const department = await Department.findById(req.params.id);
+  if (!department) {
+    return res.status(404).send();
+  }
+  res.json(department);
+});
+
+// PUT /departments/:id
+app.put('/departments/:id', async (req, res) => {
+  const department = await Department.findById(req.params.id);
+  if (!department) {
+    return res.status(404).send();
+  }
+  department.name = req.body.name;
+  department.location = req.body.location;
+  department.updated_at = new Date();
+  await department.save();
+  res.json(department);
+});
+
+// DELETE /departments/:id
+app.delete('/departments/:id', async (req, res) => {
+  const department = await Department.findByIdAndDelete(req.params.id);
+  if (!department) {
+    return res
+
